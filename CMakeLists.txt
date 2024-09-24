@@ -1,0 +1,68 @@
+cmake_minimum_required(VERSION 3.6)
+if(COMMAND cmake_policy)
+  cmake_policy(SET CMP0072 NEW)
+endif(COMMAND cmake_policy)
+
+
+PROJECT (parallax_mapping_glfw)
+
+
+IF (WIN32)
+    LINK_DIRECTORIES("lib")
+
+ELSE () # Linux
+    find_package(glfw3 REQUIRED)
+    IF(glfw3_FOUND)
+        MESSAGE("glfw3 Found")
+        INCLUDE_DIRECTORIES(${glfw3_INCLUDE_DIRS})
+    ELSE(glfw3_FOUND)
+        MESSAGE(FATAL_ERROR "glfw3 not found!")
+    ENDIF(glfw3_FOUND)
+
+    Find_Package (SDL2 REQUIRED)
+    IF(SDL2_FOUND)
+        MESSAGE("SDL2 Found")
+        INCLUDE_DIRECTORIES(${SDL2_INCLUDE_DIRS})
+    ELSE(SDL2_FOUND)
+        MESSAGE(FATAL_ERROR "SDL2 not found!")
+    ENDIF(SDL2_FOUND)
+
+    Find_Package (SDL2_IMAGE REQUIRED)
+    IF(SDL2_IMAGE_FOUND)
+        MESSAGE("SDL2_IMAGE Found, version ${SDL2_IMAGE_VERSION_STRING}")
+        INCLUDE_DIRECTORIES(${SDL2_IMAGE_INCLUDE_DIRS})
+    ELSE(SDL2_IMAGE_FOUND)
+        MESSAGE(FATAL_ERROR "SDL2_IMAGE not found!")
+    ENDIF(SDL2_IMAGE_FOUND)
+ENDIF ()
+
+
+find_package(OpenGL REQUIRED)
+IF(OpenGL_FOUND)
+    MESSAGE("OpenGL GLVND Found")
+    INCLUDE_DIRECTORIES(${OpenGL_INCLUDE_DIRS})
+ELSE(OpenGL_FOUND)
+    MESSAGE(FATAL_ERROR "OpenGL GLVND not found!")
+ENDIF(OpenGL_FOUND)
+
+
+INCLUDE_DIRECTORIES("${PROJECT_SOURCE_DIR}")
+
+SET (objList
+    parallax_mapping.cpp
+    linmath.h
+    glad/glad.c
+)
+
+
+ADD_EXECUTABLE(${PROJECT_NAME} ${EXECUTABLE_FLAG} ${objList})
+
+
+IF (WIN32)
+    TARGET_LINK_LIBRARIES(${PROJECT_NAME} SDL2_image SDL2Main SDL2 glfw3)
+ELSE () # Linux
+    TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${SDL2_LIBRARIES} ${SDL2_IMAGE_LIBRARIES} SDL2_image glfw)
+ENDIF ()
+
+ADD_CUSTOM_TARGET(debug ${CMAKE_COMMAND} -DCMAKE_BUILD_TYPE:STRING=Debug ${PROJECT_SOURCE_DIR})
+ADD_CUSTOM_TARGET(release ${CMAKE_COMMAND} -DCMAKE_BUILD_TYPE:STRING=Release ${PROJECT_SOURCE_DIR})
